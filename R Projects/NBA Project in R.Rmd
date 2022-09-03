@@ -1,0 +1,134 @@
+---
+title: "Data Programming Project"
+author: "Gerardo Ramirez"
+output:
+  pdf_document: default
+  html_document: default
+---
+
+```{r}
+library(gsheet)
+library(tidyverse)
+library(MASS)
+library(jmv)
+
+```
+
+```{r}
+#Importing data set
+nba.stats <- gsheet2tbl("https://docs.google.com/spreadsheets/d/1243nKIvCIjlmFDkyVQKft5qarpda-iCLIOrS7Roxkx8/edit?usp=sharing")
+
+nba.stats
+```
+
+```{r}
+#Scatter plot for Offensive rating and wins
+ggplot(data = nba.stats, mapping = aes(x = offensive.rating, y = wins)) +
+  geom_point()+
+  labs(title = "Offensive Rating To Wins", x = "Offensive Rating", y = "Wins")
+
+  #The higher the offensive rating = wins
+```
+
+```{r}
+#Creating a Violin Plot for player impact estimate
+PIE <- ggplot(nba.stats, aes(x = season, y = nba.stats$player.impact.estimate, fill = season)) +
+  
+  geom_violin() +
+  geom_boxplot(width = 0.1, fill = "white") +
+  labs(title = "Player Impact Estimate", x = "Season", y = "Player Impact Estimate") +
+  scale_fill_discrete(name = "Season")+
+  theme_dark()
+
+PIE
+#That outlier in the 2016-2017 season was the Golden State Warriors. Indicating how significant it was for the top players to have the ball (Likely Steph, Klay, Draymond)
+
+```
+
+```{r}
+#Violin showing Offensive Rebound Percentage 
+OFF.REB.PER <- ggplot(nba.stats, aes(x = season, y = nba.stats$offensive.rebound.percentage, fill = season)) +
+  
+  geom_violin() +
+  geom_boxplot(width = 0.1, fill = "white") +
+  labs(title = "Offensive Rebound Percentage", x = "Season", y = "Offensive Rebound Percentage") +
+  scale_fill_discrete(name = "Season")+
+  theme_dark()
+
+OFF.REB.PER
+
+```
+
+```{r}
+#True shooting % violin
+True.Shooting <- ggplot(nba.stats, aes(x = season, y = nba.stats$true.shooting.percentage, fill = season)) +
+  
+  geom_violin() +
+  geom_boxplot(width = 0.1, fill = "white") +
+  labs(title = "True Shooting %", x = "Season", y = "True Shooting %") +
+  scale_fill_discrete(name = "Season")+
+  theme_dark()
+
+True.Shooting
+
+#We can see a gradual overall rise each year due to how impactful the warriors were in their dominance. Teams tried to replicate the Warrior's shooting abilities
+```
+
+```{r}
+#Contested shots violin plots
+CON.SHOTS <- ggplot(nba.stats, aes(x = season, y = nba.stats$contested.shots, fill = season))+
+  geom_violin()+
+  geom_boxplot(width = 0.1, fill = "white")+
+  labs(title = "Contested Shots", x = "Season", y = "Contested Shots")+
+  scale_fill_discrete(name = "Season")+
+  theme_dark()
+
+CON.SHOTS 
+
+```
+```{r}
+#offensive rating and def rating descriptives
+descriptives(nba.stats, vars = vars(offensive.rating, defensive.rating), freq = TRUE)
+
+```
+
+
+
+
+```{r}
+#Create a logistic regression model using glm that we will then put into our STEP AIC
+
+NBA.model <- glm(playoffs ~ offensive.rating+ defensive.rating+ rebound.percentage+ turnover.percentage+ true.shooting.percentage+ pace+ player.impact.estimate+ screen.assists+ deflections+ offensive.loose.balls.recovered+ defensive.loose.balls.recovered+ charges.drawn+ contested.two.point.shots+ contested.three.point.shots+ contested.shots, data = nba.stats, family = binomial)
+
+```
+
+
+
+```{r}
+#Summarizing logistic regression model
+summary(NBA.model)
+```
+
+
+```{r}
+#regressions wouldnt work because my model was perfectly predicting playoff status. statistically it does not help finding results. this is called over-determination
+```
+
+
+```{r}
+#Using stepAIC 
+summary(stepAIC(NBA.model))
+```
+
+
+
+
+
+
+
+
+
+
+
+
+
